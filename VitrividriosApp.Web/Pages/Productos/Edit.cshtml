@@ -1,0 +1,55 @@
+﻿@page
+@model VitrividriosApp.Web.Pages.Productos.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Producto</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Producto.Id" />
+            <div class="form-group">
+                <label asp-for="Producto.Nombre" class="control-label"></label>
+                <input asp-for="Producto.Nombre" class="form-control" />
+                <span asp-validation-for="Producto.Nombre" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Producto.Descripcion" class="control-label"></label>
+                <input asp-for="Producto.Descripcion" class="form-control" />
+                <span asp-validation-for="Producto.Descripcion" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Producto.PrecioUnitario" class="control-label"></label>
+                <input asp-for="Producto.PrecioUnitario" class="form-control" />
+                <span asp-validation-for="Producto.PrecioUnitario" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Producto.PrecioMayorista" class="control-label"></label>
+                <input asp-for="Producto.PrecioMayorista" class="form-control" />
+                <span asp-validation-for="Producto.PrecioMayorista" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Producto.Stock" class="control-label"></label>
+                <input asp-for="Producto.Stock" class="form-control" />
+                <span asp-validation-for="Producto.Stock" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

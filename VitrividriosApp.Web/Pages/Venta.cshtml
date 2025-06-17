@@ -1,0 +1,82 @@
+﻿@page
+@model VitrividriosApp.Web.Pages.VentaModel
+@{
+    ViewData["Title"] = "Nueva Venta";
+}
+
+<h1>Nueva Venta</h1>
+<hr />
+
+<form method="post">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label">Seleccionar Cliente</label>
+                <select class="form-control" asp-for="SelectedClienteId" asp-items="@Model.Clientes">
+                    <option value="">-- Seleccione un Cliente --</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <hr />
+
+    <h4>Añadir Producto a la Venta</h4>
+    <div class="row align-items-end">
+        <div class="col-md-5">
+            <div class="form-group">
+                <label class="control-label">Producto</label>
+                <select class="form-control" asp-for="SelectedProductoId" asp-items="@Model.Productos">
+                    <option value="">-- Seleccione un Producto --</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">Cantidad</label>
+                <input asp-for="Cantidad" class="form-control" type="number" min="1" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <button type="submit" class="btn btn-secondary form-control" asp-page-handler="AnadirProducto">Añadir</button>
+            </div>
+        </div>
+    </div>
+    <hr />
+
+    <h4>Productos en la Venta</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.DetallesVenta)
+            {
+                <tr>
+                    <td>@item.Producto.Nombre</td>
+                    <td>@item.Cantidad</td>
+                    <td>@item.PrecioEnVenta.ToString("C")</td>
+                    <td>@((item.Cantidad * item.PrecioEnVenta).ToString("C"))</td>
+                    <td>
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                asp-page-handler="EliminarProducto"
+                                asp-route-index="@Model.DetallesVenta.IndexOf(item)">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary" asp-page-handler="GuardarVenta">Guardar Venta</button>
+    </div>
+</form>
