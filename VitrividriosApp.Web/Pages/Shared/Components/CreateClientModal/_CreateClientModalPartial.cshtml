@@ -1,0 +1,194 @@
+﻿<div class="modal fade" id="createClientModal" tabindex="-1" aria-labelledby="createClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createClientModalLabel">Registrar Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newClientForm">
+                    <div class="alert alert-danger d-none" id="modalValidationSummary"></div>
+
+                    <div class="mb-3">
+                        <label for="newClientName" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="newClientName" required>
+                        <div class="invalid-feedback" id="newClientNameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newClientAddress" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="newClientAddress">
+                        <div class="invalid-feedback" id="newClientAddressError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newClientPhone" class="form-label">Celular</label>
+                        <input type="text" class="form-control" id="newClientPhone">
+                        <div class="invalid-feedback" id="newClientPhoneError"></div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="newClientIsWholesaler">
+                        <label class="form-check-label" for="newClientIsWholesaler">Es Mayorista</label>
+                    </div>
+                    <div class="alert alert-danger d-none mt-3" id="clientCreationErrorAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="saveNewClientBtn">Crear Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const createClientModalElement = document.getElementById('createClientModal');
+        if (!createClientModalElement) {
+            return;
+        }
+
+        const createClientModal = new bootstrap.Modal(createClientModalElement);
+        const saveNewClientBtn = document.getElementById('saveNewClientBtn');
+        const newClientForm = document.getElementById('newClientForm');
+        const clienteSelect = document.getElementById('clienteSelect');
+        const clientCreationErrorAlert = document.getElementById('clientCreationErrorAlert');
+        const modalValidationSummary = document.getElementById('modalValidationSummary');
+
+        createClientModalElement.addEventListener('show.bs.modal', function () {
+            newClientForm.reset();
+            clearValidationErrors();
+            clientCreationErrorAlert.classList.add('d-none');
+            clientCreationErrorAlert.textContent = '';
+            modalValidationSummary.classList.add('d-none');
+            modalValidationSummary.innerHTML = '';
+        });
+
+        saveNewClientBtn.addEventListener('click', async function () {
+            clearValidationErrors();
+            clientCreationErrorAlert.classList.add('d-none');
+            clientCreationErrorAlert.textContent = '';
+            modalValidationSummary.classList.add('d-none');
+            modalValidationSummary.innerHTML = '';
+
+            const nombre = document.getElementById('newClientName').value.trim();
+            const direccion = document.getElementById('newClientAddress').value.trim();
+            const celular = document.getElementById('newClientPhone').value.trim();
+            const esMayorista = document.getElementById('newClientIsWholesaler').checked;
+
+            let hasClientSideError = false;
+            if (!nombre) {
+                displayValidationError('newClientName', 'El nombre del cliente es obligatorio.');
+                hasClientSideError = true;
+            }
+
+            if (hasClientSideError) {
+                return;
+            }
+
+            const newClientData = {
+                nombre: nombre,
+                direccion: direccion,
+                celular: celular,
+                esMayorista: esMayorista
+            };
+
+            try {
+                // --- INICIO DE LA CORRECCIÓN ---
+                // La URL ahora es relativa a la página actual y apunta al handler correcto.
+                const response = await fetch('?handler=CreateClientAjax', {
+                // --- FIN DE LA CORRECCIÓN ---
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(newClientData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        const newClient = result.cliente;
+                        const newOption = document.createElement('option');
+                        newOption.value = newClient.id;
+                        newOption.textContent = newClient.nombre;
+                        if (clienteSelect) {
+                            clienteSelect.appendChild(newOption);
+                            clienteSelect.value = newClient.id;
+                        }
+                        createClientModal.hide();
+                    } else {
+                        if (result.errors) {
+                            displayServerValidationErrors(result.errors);
+                        } else if (result.error) {
+                            clientCreationErrorAlert.textContent = result.error;
+                            clientCreationErrorAlert.classList.remove('d-none');
+                        }
+                    }
+                } else {
+                    const errorText = await response.text();
+                    clientCreationErrorAlert.textContent = `Error del servidor: ${response.status} - ${errorText}`;
+                    clientCreationErrorAlert.classList.remove('d-none');
+                }
+            } catch (error) {
+                console.error('Error al crear cliente:', error);
+                clientCreationErrorAlert.textContent = `Error de red o comunicación: ${error.message}`;
+                clientCreationErrorAlert.classList.remove('d-none');
+            }
+        });
+
+        function displayValidationError(fieldId, message) {
+            const inputElement = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            if (inputElement && errorElement) {
+                inputElement.classList.add('is-invalid');
+                errorElement.textContent = message;
+            }
+        }
+
+        function clearValidationErrors() {
+            document.querySelectorAll('#newClientForm .form-control.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            document.querySelectorAll('#newClientForm .invalid-feedback').forEach(el => {
+                el.textContent = '';
+            });
+            modalValidationSummary.classList.add('d-none');
+            modalValidationSummary.innerHTML = '';
+        }
+
+        function displayServerValidationErrors(errors) {
+            let generalErrorsHtml = '<ul>';
+            let hasSpecificErrors = false;
+
+            for (const key in errors) {
+                if (errors.hasOwnProperty(key)) {
+                    let fieldId = 'newClient' + key.charAt(0).toUpperCase() + key.slice(1);
+                    const inputElement = document.getElementById(fieldId);
+                    const errorMessages = errors[key];
+
+                    if (inputElement) {
+                        inputElement.classList.add('is-invalid');
+                        const errorElement = document.getElementById(fieldId + 'Error');
+                        if (errorElement) {
+                            errorElement.textContent = errorMessages.join(', ');
+                        }
+                        hasSpecificErrors = true;
+                    } else {
+                        errorMessages.forEach(msg => {
+                            generalErrorsHtml += `<li>${key}: ${msg}</li>`;
+                        });
+                    }
+                }
+            }
+
+            generalErrorsHtml += '</ul>';
+
+            if (generalErrorsHtml !== '<ul></ul>' || !hasSpecificErrors) {
+                modalValidationSummary.innerHTML = generalErrorsHtml === '<ul></ul>' && !hasSpecificErrors
+                    ? 'Se produjo un error de validación desconocido.'
+                    : generalErrorsHtml;
+                modalValidationSummary.classList.remove('d-none');
+            }
+        }
+    });
+</script>

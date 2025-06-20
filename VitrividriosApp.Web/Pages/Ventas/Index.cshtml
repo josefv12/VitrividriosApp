@@ -1,0 +1,151 @@
+﻿@page
+@model VitrividriosApp.Web.Pages.Ventas.IndexModel
+@{
+    ViewData["Title"] = "Gestión de Ventas";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>Registra y visualiza las ventas realizadas, orquestadas por el ServicioVentas.</p>
+
+<div class="row">
+    <div class="col-md-12">
+        <!-- Mostrar resumen de errores de validación o del servidor para el formulario principal de Venta -->
+        @if (!ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        }
+
+        <h4>Registrar Nueva Venta</h4>
+        <hr />
+        <form method="post" asp-page-handler="CreateVenta" class="mb-4 p-3 border rounded shadow-sm">
+            <div class="mb-3">
+                <label asp-for="InputVenta.ClienteId" class="form-label">Cliente:</label>
+                <div class="input-group">
+                    <!-- Usar input-group para alinear select y botón -->
+                    <select asp-for="InputVenta.ClienteId"
+                            asp-items="Model.ClientesDisponibles"
+                            class="form-select" id="clienteSelect">
+                        <!-- Añadir ID para JS del componente -->
+                        <option value="">-- Seleccione un cliente --</option>
+                    </select>
+                    <!-- Botón para abrir la modal. Solo activa la modal de Bootstrap. -->
+                    <a asp-page="/Clientes/Create" class="btn btn-info">Nuevo Cliente</a>
+                </div>
+                <span asp-validation-for="InputVenta.ClienteId" class="text-danger"></span>
+            </div>
+
+            <h5>Productos de la Venta</h5>
+            <hr />
+            @if (Model.InputVenta.Items.Any())
+            {
+                <table class="table table-sm table-bordered">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.InputVenta.Items.Count; i++)
+                        {
+                            var item = Model.InputVenta.Items[i];
+                            <tr>
+                                <td>
+                                    @{
+                                        var prod = Model.ProductosDisponibles.FirstOrDefault(p => p.Value == item.ProductoId.ToString());
+                                        @prod?.Text
+                                    }
+                                    <input type="hidden" name="InputVenta.Items[@i].ProductoId" value="@item.ProductoId" />
+                                    <input type="hidden" name="InputVenta.Items[@i].Cantidad" value="@item.Cantidad" />
+                                </td>
+                                <td>@item.Cantidad</td>
+                                <td>
+                                    <button type="submit" asp-page-handler="RemoveItem" asp-route-index="@i" class="btn btn-warning btn-sm">Quitar</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p><em>No se han agregado productos a la venta.</em></p>
+            }
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="SelectedProductoId" class="form-label">Agregar Producto:</label>
+                    <select asp-for="SelectedProductoId"
+                            asp-items="Model.ProductosDisponibles"
+                            class="form-select">
+                        <option value="">-- Seleccione un producto --</option>
+                    </select>
+                    <span asp-validation-for="SelectedProductoId" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SelectedCantidad" class="form-label">Cantidad:</label>
+                    <input asp-for="SelectedCantidad" type="number" min="1" class="form-control" />
+                    <span asp-validation-for="SelectedCantidad" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" asp-page-handler="AddItem" class="btn btn-info w-100">Agregar</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success mt-3 w-100">Registrar Venta</button>
+        </form>
+
+        <h4 class="mt-5">Historial de Ventas</h4>
+        <hr />
+        @if (Model.Ventas == null || !Model.Ventas.Any())
+        {
+            <p><em>No hay ventas registradas.</em></p>
+        }
+        else
+        {
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID Venta</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var venta in Model.Ventas)
+                    {
+                        <tr>
+                            <td>@venta.Id</td>
+                            <td>@venta.ClienteNombre</td>
+                            <td>@venta.Fecha.ToShortDateString() @venta.Fecha.ToShortTimeString()</td>
+                            <td>@venta.TotalVenta.ToString("C")</td> <!-- Formato moneda -->
+                            <td>
+                                <ul>
+                                    @foreach (var detalle in venta.Detalles)
+                                    {
+                                        <li>@detalle.ProductoNombre (@detalle.Cantidad x @detalle.PrecioEnVenta.ToString("C"))</li>
+                                    }
+                                </ul>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- Renderiza el componente de vista de la modal de creación de cliente.
+     Su lógica y UI están completamente encapsuladas en /Pages/Shared/Components/CreateClientModal/Default.cshtml -->
+<partial name="Shared/Components/CreateClientModal/_CreateClientModalPartial" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <!-- Asegúrate de que Bootstrap JS esté cargado. Si ya lo tienes en _Layout.cshtml, puedes omitir esta línea -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+}

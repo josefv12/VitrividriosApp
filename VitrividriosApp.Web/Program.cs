@@ -1,12 +1,32 @@
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting; // Agregado por si acaso
+using Microsoft.Extensions.Hosting; // Agregado por si acaso
+using System;
+using System.Net.Http; // Necesario para HttpClient
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
-// Añadimos el DbContext y le decimos que use SQLite con la conexión que definimos
-builder.Services.AddDbContext<VitrividriosApp.Web.Data.ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddRazorPages(); // Si es Razor Pages
+// builder.Services.AddControllersWithViews(); // Si es MVC
+
+// ** CONFIGURACIÓN DE HTTPCLIENTS PARA LOS MICROSERVICIOS API **
+// Configura el HttpClient para ServicioCatalogo
+builder.Services.AddHttpClient("ServicioCatalogo", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServicioUrls:Catalogo"] ?? throw new InvalidOperationException("URL de ServicioCatalogo no configurada en appsettings.json."));
+});
+
+// Configura el HttpClient para ServicioClientes
+builder.Services.AddHttpClient("ServicioClientes", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServicioUrls:Clientes"] ?? throw new InvalidOperationException("URL de ServicioClientes no configurada en appsettings.json."));
+});
+
+// Configura el HttpClient para ServicioVentas
+builder.Services.AddHttpClient("ServicioVentas", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServicioUrls:Ventas"] ?? throw new InvalidOperationException("URL de ServicioVentas no configurada en appsettings.json."));
+});
 
 var app = builder.Build();
 
@@ -25,6 +45,9 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapRazorPages();
+app.MapRazorPages(); // Si es Razor Pages
+// app.MapControllerRoute( // Si es MVC
+//     name: "default",
+//     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

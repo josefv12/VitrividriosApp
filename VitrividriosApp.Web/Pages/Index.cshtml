@@ -1,0 +1,72 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Bienvenido a VitrividriosApp";
+}
+
+<div class="text-center py-5 bg-light rounded-3 shadow-sm mb-5">
+    <h1 class="display-4 fw-bold text-primary mb-3">VitrividriosApp</h1>
+    <p class="lead text-muted">Gestión integral para tu negocio de vidrios y más.</p>
+    <hr class="my-4">
+    <p>Explora nuestras secciones principales para empezar a gestionar tu inventario, clientes y ventas.</p>
+
+    <a asp-page="/Ventas/Index" class="btn btn-success btn-lg mt-3 shadow-lg">
+        <i class="fa fa-cash-register me-2"></i> Realizar Nueva Venta
+    </a>
+</div>
+
+@* Mensajes de TempData (como éxito al guardar una venta) *@
+@if (TempData["MensajeVentaExitosa"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+        <i class="fa fa-check-circle me-2"></i> @TempData["MensajeVentaExitosa"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+        <i class="fa fa-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 rounded-lg text-center">
+            <div class="card-body">
+                <i class="fa fa-boxes display-4 text-info mb-3"></i>
+                <h5 class="card-title fw-bold">Gestión de Productos</h5>
+                <p class="card-text text-muted">Controla tu inventario, precios unitarios y mayoristas.</p>
+            </div>
+            <div class="card-footer bg-transparent border-top">
+                <a asp-page="/Productos/Index" class="btn btn-outline-primary w-100">Ver Productos <i class="fa fa-arrow-right ms-2"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 rounded-lg text-center">
+            <div class="card-body">
+                <i class="fa fa-users display-4 text-warning mb-3"></i>
+                <h5 class="card-title fw-bold">Gestión de Clientes</h5>
+                <p class="card-text text-muted">Administra la información de tus clientes y sus precios especiales.</p>
+            </div>
+            <div class="card-footer bg-transparent border-top">
+                <a asp-page="/Clientes/Index" class="btn btn-outline-primary w-100">Ver Clientes <i class="fa fa-arrow-right ms-2"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 rounded-lg text-center">
+            <div class="card-body">
+                <i class="fa fa-history display-4 text-danger mb-3"></i>
+                <h5 class="card-title fw-bold">Historial de Ventas</h5>
+                <p class="card-text text-muted">Revisa y consulta todas las ventas realizadas en tu negocio.</p>
+            </div>
+            <div class="card-footer bg-transparent border-top">
+                <a asp-page="/Ventas/Index" class="btn btn-outline-primary w-100">Ver Historial <i class="fa fa-arrow-right ms-2"></i></a>
+            </div>
+        </div>
+    </div>
+</div>

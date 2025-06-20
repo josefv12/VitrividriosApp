@@ -1,0 +1,113 @@
+﻿@page
+@model VitrividriosApp.Web.Pages.Ventas.DetailsModel
+
+@{
+    ViewData["Title"] = "Detalles de Venta";
+}
+
+<h1 class="mb-4">Detalles de Venta</h1>
+<hr />
+
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+
+        <!-- Tarjeta de Información General de la Venta -->
+        <div class="card shadow-lg border-0 rounded-lg mb-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h3 class="fw-light my-2"><i class="fa fa-info-circle me-2"></i> Información General de la Venta</h3>
+            </div>
+            <div class="card-body p-4">
+                <dl class="row mb-0">
+                    @* mb-0 para quitar margen inferior si es la última dl *@
+                    <dt class="col-sm-4">
+                        ID Venta:
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Venta.Id)
+                    </dd>
+                    <dt class="col-sm-4">
+                        Fecha:
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Venta.Fecha)
+                    </dd>
+                    <dt class="col-sm-4">
+                        Cliente:
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Venta.Cliente.Nombre)
+                    </dd>
+                    <dt class="col-sm-4">
+                        Total de Venta:
+                    </dt>
+                    <dd class="col-sm-8">
+                        <strong class="fs-5 text-success">@Html.DisplayFor(model => model.Venta.TotalVenta)</strong>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Productos en esta Venta -->
+        <div class="card shadow-lg border-0 rounded-lg mb-4">
+            <div class="card-header bg-dark text-white py-3">
+                <h3 class="fw-light my-2"><i class="fa fa-boxes me-2"></i> Productos Incluidos</h3>
+            </div>
+            <div class="card-body p-4">
+                @if (Model.Venta.Detalles == null || !Model.Venta.Detalles.Any())
+                {
+                    <div class="alert alert-warning text-center" role="alert">
+                        <i class="fa fa-exclamation-triangle me-2"></i> No hay productos registrados para esta venta.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered shadow-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Venta.Detalles)
+                                {
+                                    <tr>
+                                        <td>@Html.DisplayFor(modelItem => item.Producto.Nombre)</td>
+                                        <td>@Html.DisplayFor(modelItem => item.Cantidad)</td>
+                                        <td>@Html.DisplayFor(modelItem => item.PrecioEnVenta)</td>
+                                        <td>@((item.Cantidad * item.PrecioEnVenta).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-dark text-white">
+                                    <th colspan="3" class="text-end">Total de la Venta:</th>
+                                    <th><strong class="fs-6">@Html.DisplayFor(model => model.Venta.TotalVenta)</strong></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="d-flex justify-content-between mt-4 mb-5">
+            <a asp-page="./Index" class="btn btn-secondary btn-lg">
+                <i class="fa fa-arrow-left me-2"></i> Volver al Historial
+            </a>
+            @* Opcional: Aquí podrías añadir un botón para imprimir, etc. *@
+            @* <a asp-page="./Edit" asp-route-id="@Model.Venta.Id" class="btn btn-warning btn-lg">Editar Venta</a> *@
+        </div>
+
+    </div> @* Fin col-lg-10 *@
+</div> @* Fin row justify-content-center *@
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

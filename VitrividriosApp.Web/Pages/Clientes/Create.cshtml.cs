@@ -1,33 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using VitrividriosApp.Web.Data;
-using VitrividriosApp.Web.Models;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using VitrividriosApp.Web.SharedDtos; // Asegúrate de que este namespace y el DTO existan
 
 namespace VitrividriosApp.Web.Pages.Clientes
 {
     public class CreateModel : PageModel
     {
-        private readonly VitrividriosApp.Web.Data.ApplicationDbContext _context;
+        // 1. Cambiamos el DbContext por el IHttpClientFactory
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public CreateModel(VitrividriosApp.Web.Data.ApplicationDbContext context)
+        public CreateModel(IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            _httpClientFactory = httpClientFactory;
         }
+
+        [BindProperty]
+        public CrearOActualizarClienteDto Cliente { get; set; } = new();
 
         public IActionResult OnGet()
         {
             return Page();
         }
 
-        [BindProperty]
-        public Cliente Cliente { get; set; } = default!;
-
-        // For more information, see https://aka.ms/RazorPagesCRUD.
+        // 2. Cambiamos la lógica para que llame a la API en lugar de usar el DbContext
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -35,10 +34,33 @@ namespace VitrividriosApp.Web.Pages.Clientes
                 return Page();
             }
 
-            _context.Clientes.Add(Cliente);
-            await _context.SaveChangesAsync();
+            // Creamos un cliente HTTP para hablar con el ServicioClientes
+            var httpClient = _httpClientFactory.CreateClient("ServicioClientes");
 
-            return RedirectToPage("./Index");
+            try
+            {
+                // Llamamos a la API del microservicio para crear el cliente
+                var response = await httpClient.PostAsJsonAsync("api/Clientes", Cliente);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Si la creación fue exitosa, redirigir a la página de Ventas como planeamos
+                    return RedirectToPage("/Ventas/Index");
+                }
+                else
+                {
+                    // Si la API devuelve un error, lo mostramos en la página
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    ModelState.AddModelError(string.Empty, $"Error del servicio: {errorContent}");
+                    return Page();
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Si hay un error de conexión, lo mostramos en la página
+                ModelState.AddModelError(string.Empty, $"Error de red: No se pudo conectar al servicio. {ex.Message}");
+                return Page();
+            }
         }
     }
 }

@@ -2,48 +2,64 @@
 @model VitrividriosApp.Web.Pages.Productos.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalles del Producto";
 }
 
-<h1>Details</h1>
+<h1 class="mb-4">Detalles del Producto</h1>
+<hr />
 
-<div>
-    <h4>Producto</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Producto.Nombre)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Producto.Nombre)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Producto.Descripcion)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Producto.Descripcion)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Producto.PrecioUnitario)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Producto.PrecioUnitario)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Producto.PrecioMayorista)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Producto.PrecioMayorista)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Producto.Stock)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Producto.Stock)
-        </dd>
-    </dl>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg border-0 rounded-lg mt-5">
+            <div class="card-header bg-info text-white text-center py-3">
+                <h3 class="fw-light my-2">Información Detallada</h3>
+            </div>
+            <div class="card-body p-4">
+                <dl class="row">
+                    <dt class="col-sm-4">
+                        @Html.DisplayNameFor(model => model.Producto.Nombre)
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Producto.Nombre)
+                    </dd>
+                    <dt class="col-sm-4">
+                        @Html.DisplayNameFor(model => model.Producto.Descripcion)
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Producto.Descripcion)
+                    </dd>
+                    <dt class="col-sm-4">
+                        @Html.DisplayNameFor(model => model.Producto.PrecioUnitario)
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Producto.PrecioUnitario)
+                    </dd>
+                    <dt class="col-sm-4">
+                        @Html.DisplayNameFor(model => model.Producto.PrecioMayorista)
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Producto.PrecioMayorista)
+                    </dd>
+                    <dt class="col-sm-4">
+                        @Html.DisplayNameFor(model => model.Producto.Stock)
+                    </dt>
+                    <dd class="col-sm-8">
+                        @Html.DisplayFor(model => model.Producto.Stock)
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-light border-top d-flex justify-content-between p-3">
+                <a asp-page="./Edit" asp-route-id="@Model.Producto.Id" class="btn btn-warning btn-lg">
+                    <i class="fa fa-edit me-2"></i> Editar
+                </a>
+                <a asp-page="./Index" class="btn btn-secondary btn-lg">
+                    <i class="fa fa-arrow-left me-2"></i> Volver a la Lista
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.Producto.Id">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
-</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-e91G6FjFf7qfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFf" crossorigin="anonymous">
+}

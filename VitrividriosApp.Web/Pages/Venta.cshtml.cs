@@ -31,6 +31,10 @@ namespace VitrividriosApp.Web.Pages
         public string CarritoJson { get; set; }
         public List<DetalleVenta> DetallesVenta { get; set; } = new List<DetalleVenta>();
 
+        // ** AÑADE ESTA PROPIEDAD AQUÍ **
+        // Esta propiedad calculará el TotalVenta para la vista.
+        public decimal TotalVenta => DetallesVenta != null ? DetallesVenta.Sum(item => item.Cantidad * item.PrecioEnVenta) : 0m;
+
 
         public async Task OnGetAsync()
         {
@@ -55,13 +59,13 @@ namespace VitrividriosApp.Web.Pages
             if (productoAAgregar != null && cliente != null && productoAAgregar.Stock >= Cantidad)
             {
                 decimal precioAplicado = cliente.EsMayorista
-                                            ? productoAAgregar.PrecioMayorista
-                                            : productoAAgregar.PrecioUnitario;
+                                                ? productoAAgregar.PrecioMayorista
+                                                : productoAAgregar.PrecioUnitario;
 
                 DetallesVenta.Add(new DetalleVenta
                 {
                     ProductoId = productoAAgregar.Id,
-                    Producto = productoAAgregar,
+                    Producto = productoAAgregar, // Asegúrate de que este Producto sea el modelo completo si lo necesitas en la vista
                     Cantidad = Cantidad,
                     PrecioEnVenta = precioAplicado
                 });
@@ -91,13 +95,12 @@ namespace VitrividriosApp.Web.Pages
             return Page();
         }
 
-        // --- MÉTODO MODIFICADO: AHORA TIENE UN NOMBRE ESPECÍFICO ---
         public async Task<IActionResult> OnPostGuardarVentaAsync()
         {
             if (string.IsNullOrEmpty(CarritoJson))
             {
                 await CargarDatosDesplegables();
-                return Page();
+                return Page(); // No hay productos en el carrito, no guardar
             }
             DetallesVenta = JsonSerializer.Deserialize<List<DetalleVenta>>(CarritoJson);
 
@@ -108,12 +111,14 @@ namespace VitrividriosApp.Web.Pages
                 Detalles = new List<DetalleVenta>()
             };
 
-            decimal totalVenta = 0;
+            decimal totalVentaCalculado = 0; // Usar un nombre diferente para evitar confusión con la propiedad TotalVenta del PageModel
             foreach (var item in DetallesVenta)
             {
                 var productoEnDB = await _context.Productos.FindAsync(item.ProductoId);
                 if (productoEnDB == null || productoEnDB.Stock < item.Cantidad)
                 {
+                    // Manejar error: producto no encontrado o stock insuficiente
+                    // Podrías añadir un ModelState.AddModelError o un TempData para mostrar un mensaje al usuario
                     await CargarDatosDesplegables();
                     return Page();
                 }
@@ -124,38 +129,40 @@ namespace VitrividriosApp.Web.Pages
                 {
                     ProductoId = item.ProductoId,
                     Cantidad = item.Cantidad,
-                    PrecioEnVenta = item.PrecioEnVenta
+                    PrecioEnVenta = item.PrecioEnVenta // Este precio ya viene del carrito
                 };
                 venta.Detalles.Add(detalle);
-                totalVenta += item.Cantidad * item.PrecioEnVenta;
+                totalVentaCalculado += item.Cantidad * item.PrecioEnVenta;
             }
 
-            venta.TotalVenta = totalVenta;
+            venta.TotalVenta = totalVentaCalculado; // Asigna el total calculado al modelo de dominio Venta
 
             _context.Ventas.Add(venta);
             await _context.SaveChangesAsync();
 
-            TempData.Remove("CarritoJson");
+            TempData.Remove("CarritoJson"); // Limpiar el carrito después de guardar
+            TempData["MensajeVentaExitosa"] = $"Venta registrada exitosamente con un total de {venta.TotalVenta.ToString("C")}.";
 
-            return RedirectToPage("/Productos/Index");
+            // Redirige a la página de detalles de la venta recién creada
+            return RedirectToPage("./Ventas/Details", new { id = venta.Id });
         }
 
         private async Task CargarDatosDesplegables()
         {
             Clientes = await _context.Clientes
-                               .Select(c => new SelectListItem
-                               {
-                                   Value = c.Id.ToString(),
-                                   Text = c.Nombre
-                               }).ToListAsync();
+                                     .Select(c => new SelectListItem
+                                     {
+                                         Value = c.Id.ToString(),
+                                         Text = c.Nombre
+                                     }).ToListAsync();
 
             Productos = await _context.Productos
-                                .Where(p => p.Stock > 0)
-                                .Select(p => new SelectListItem
-                                {
-                                    Value = p.Id.ToString(),
-                                    Text = $"{p.Nombre} (Stock: {p.Stock})"
-                                }).ToListAsync();
+                                     .Where(p => p.Stock > 0)
+                                     .Select(p => new SelectListItem
+                                     {
+                                         Value = p.Id.ToString(),
+                                         Text = $"{p.Nombre} (Stock: {p.Stock})"
+                                     }).ToListAsync();
         }
     }
 }
